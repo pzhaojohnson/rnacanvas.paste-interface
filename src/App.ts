@@ -11,4 +11,16 @@ export interface App {
    * Throws if unable to do so.
    */
   restore(previousState: unknown): void | never;
+
+  /**
+   * Deselects all currently selected elements.
+   */
+  deselect(): void;
+
+  readonly drawingView: {
+    /**
+     * Fits the user's view of the drawing to its content.
+     */
+    fitToContent(): void;
+  }
 }

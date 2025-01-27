@@ -36,6 +36,11 @@ export class RNAcanvasFilePasteHandler {
 
     try {
       this.#targetApp.restore(JSON.parse(await firstFile.text()));
+
+      // deselect any previously selected elements
+      this.#targetApp.deselect();
+
+      this.#targetApp.drawingView.fitToContent();
     } catch (error) {
       console.error(error);
       console.error('Unable to open saved drawing.');

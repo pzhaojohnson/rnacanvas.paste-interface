@@ -1,6 +1,6 @@
 {
   "name": "@rnacanvas/paste-interface",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Paste things",
   "repository": {
     "type": "git",
@@ -26,5 +26,8 @@
     "typescript": "^5.3.3",
     "webpack": "^5.89.0",
     "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "@rnacanvas/value-check": "^1.14.1"
   }
 }

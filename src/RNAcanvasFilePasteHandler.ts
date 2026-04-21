@@ -1,6 +1,8 @@
 import type { App } from './App';
 
-import { isNonNullObject } from '@rnacanvas/value-check';
+import { isLegacy } from './isLegacy';
+
+import { Box } from '@rnacanvas/boxes';
 
 /**
  * Opens pasted RNAcanvas files in the target app.
@@ -34,7 +36,7 @@ export class RNAcanvasFilePasteHandler {
     event.preventDefault();
     event.stopPropagation();
 
-    this.#targetApp.pushUndoStack();
+    this.#targetApp.undoStack.push();
 
     try {
       let savedAppState = JSON.parse(await firstFile.text());
@@ -42,7 +44,7 @@ export class RNAcanvasFilePasteHandler {
       this.#targetApp.restore(savedAppState);
 
       // legacy drawings always had white background colors (though not explicitly set)
-      hasLegacyDrawing(savedAppState) ? this.#targetApp.drawing.domNode.style.backgroundColor = 'white' : {};
+      isLegacy(savedAppState) ? this.#targetApp.drawing.domNode.style.backgroundColor = 'white' : {};
 
       // these CSS styles facilitate user interaction with the drawing
       this.#targetApp.drawing.domNode.style.userSelect = 'none';
@@ -52,7 +54,7 @@ export class RNAcanvasFilePasteHandler {
       // deselect any previously selected elements
       this.#targetApp.deselect();
 
-      this.#targetApp.drawingView.fitToContent();
+      this.#targetApp.view.fitTo(Box.matching(this.#targetApp.drawing.contentBBox).padded({ percentage: 10 }));
     } catch (error) {
       console.error(error);
       console.error('Unable to open saved drawing.');
@@ -60,15 +62,4 @@ export class RNAcanvasFilePasteHandler {
       this.#targetApp.undo();
     }
   }
-}
-
-/**
- * Detects if the saved app state has a drawing in a legacy format.
- */
-function hasLegacyDrawing(savedAppState: unknown): boolean {
-  return (
-    isNonNullObject(savedAppState)
-    && isNonNullObject(savedAppState.drawing)
-    && 'svg' in savedAppState.drawing
-  );
 }

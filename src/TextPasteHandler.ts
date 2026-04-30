@@ -4,9 +4,7 @@ import { RNAcanvasTextPasteHandler } from './RNAcanvasTextPasteHandler';
 
 import { isJSON } from '@rnacanvas/value-check';
 
-import { DotBracketTextPasteHandler } from './DotBracketTextPasteHandler';
-
-import { isDotBracketFASTA } from '@rnacanvas/dot-bracket';
+import { StructureTextPasteHandler } from './StructureTextPasteHandler';
 
 import { CTTextPasteHandler } from './CTTextPasteHandler';
 
@@ -15,14 +13,14 @@ import { isCT } from '@rnacanvas/ct';
 export class TextPasteHandler {
   readonly #rnaCanvasTextPasteHandler;
 
-  readonly #dotBracketTextPasteHandler;
+  readonly #structureTextPasteHandler;
 
   readonly #ctTextPasteHandler;
 
   constructor(targetApp: App) {
     this.#rnaCanvasTextPasteHandler = new RNAcanvasTextPasteHandler(targetApp);
 
-    this.#dotBracketTextPasteHandler = new DotBracketTextPasteHandler(targetApp);
+    this.#structureTextPasteHandler = new StructureTextPasteHandler(targetApp);
 
     this.#ctTextPasteHandler = new CTTextPasteHandler(targetApp);
   }
@@ -37,12 +35,10 @@ export class TextPasteHandler {
     try {
       if (isJSON(text)) {
         this.#rnaCanvasTextPasteHandler.handle(event);
-      } else if (isDotBracketFASTA(text)) {
-        this.#dotBracketTextPasteHandler.handle(event);
       } else if (isCT(text)) {
         this.#ctTextPasteHandler.handle(event);
       } else {
-        throw new Error(`Unrecognized text format: ${text}.`);
+        this.#structureTextPasteHandler.handle(event);
       }
     } catch (error) {
       console.error(error);

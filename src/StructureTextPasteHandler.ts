@@ -1,10 +1,12 @@
 import type { App } from './App';
 
-import { isDotBracketFASTA, parseDotBracketFASTA } from '@rnacanvas/dot-bracket';
+import { parseStructure } from '@rnacanvas/parse';
+
+import { parseFASTA, isFASTA } from '@rnacanvas/parse';
 
 import { isTruthy } from './isTruthy';
 
-export class DotBracketTextPasteHandler {
+export class StructureTextPasteHandler {
   readonly #targetApp;
 
   constructor(targetApp: App) {
@@ -16,20 +18,19 @@ export class DotBracketTextPasteHandler {
 
     if (!text) {
       throw new Error('Paste event text content is falsy.');
-    } else if (!isDotBracketFASTA(text)) {
-      throw new Error(`Paste event text content is not in dot-bracket FASTA format: ${text}.`);
     }
 
     // make sure to push the undo stack first (in case something throws)
     this.#targetApp.undoStack.push();
 
     try {
-      let parsed = parseDotBracketFASTA(text);
+      let parsed: Parsed = isFASTA(text) ? parseFASTA(text) : parseStructure(text);
 
       this.#targetApp.drawDotBracket(parsed.sequence, parsed.dotBracket);
 
-      if (parsed.name) {
-        this.#targetApp.drawing.name = [this.#targetApp.drawing.name, parsed.name].filter(isTruthy).join(', ');
+      if (parsed.header) {
+        this.#targetApp.drawing.name += isTruthy(this.#targetApp.drawing.name) ? ', ' : '';
+        this.#targetApp.drawing.name += parsed.header;
       }
 
       this.#targetApp.drawing.setPadding(1000);
@@ -40,7 +41,15 @@ export class DotBracketTextPasteHandler {
 
       this.#targetApp.undo();
 
-      throw new Error(`Unable to draw dot-bracket FASTA: ${text}.`);
+      throw new Error(`Unable to draw structure: ${text}.`);
     }
   }
 }
+
+type Parsed = {
+  header?: string;
+
+  sequence: string;
+
+  dotBracket: string;
+};

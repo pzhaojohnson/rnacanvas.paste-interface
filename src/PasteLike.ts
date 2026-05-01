@@ -9,8 +9,8 @@ export type PasteLike = {
       [index: number]: File;
 
       readonly length: number;
-    } | null;
-  }
+    };
+  } | null;
 
   preventDefault(): void;
 

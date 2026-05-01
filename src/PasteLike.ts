@@ -2,14 +2,14 @@
  * Like a paste event.
  */
 export type PasteLike = {
-  clipboardData?: {
+  clipboardData: {
     getData(format: string): string;
 
     files?: {
       [index: number]: File;
 
       readonly length: number;
-    };
+    } | null;
   }
 
   preventDefault(): void;

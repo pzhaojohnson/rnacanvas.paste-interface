@@ -1,5 +1,7 @@
 import type { App } from './App';
 
+import { PasteLike } from './PasteLike';
+
 import { isJSON } from '@rnacanvas/utilities';
 
 import { isFASTA, parseFASTA } from '@rnacanvas/parse';
@@ -13,7 +15,7 @@ export class PasteHandler {
     this.#targetApp = targetApp;
   }
 
-  async handle(event: ClipboardEvent) {
+  async handle(event: PasteLike) {
     event.preventDefault();
     event.stopPropagation();
 

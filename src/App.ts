@@ -28,12 +28,15 @@ export interface App {
     reset(): void;
   }
 
-  drawDotBracket(sequence: string, dotBracket: string): void | never;
-
   /**
-   * Draws the structure in the provided CT string.
+   * Draws whatever is specified by the text
+   * (e.g., a structure in dot-bracket notation,
+   * a structure in CT format,
+   * a saved app state).
+   *
+   * May throw for invalid text inputs.
    */
-  drawCT(ct: string): void | never;
+  draw(text: string): void | never;
 
   undo(): void;
 

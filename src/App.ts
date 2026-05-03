@@ -1,3 +1,5 @@
+import type { DrawingElement } from './DrawingElement';
+
 import type { BoxLike } from '@rnacanvas/boxes';
 
 /**
@@ -11,6 +13,8 @@ export interface App {
     readonly domNode: SVGSVGElement;
 
     name?: string;
+
+    isEmpty(): boolean;
 
     /**
      * The bounding box of the drawing's content.
@@ -36,7 +40,18 @@ export interface App {
    *
    * May throw for invalid text inputs.
    */
-  draw(text: string): void | never;
+  draw(text: string): (
+    {
+      /**
+       * The drawn bases.
+       */
+      bases?: Iterable<DrawingElement>;
+    }
+  ) | (
+    undefined
+  ) | (
+    never
+  );
 
   undo(): void;
 
@@ -53,6 +68,11 @@ export interface App {
    * Throws if unable to do so.
    */
   restore(previousState: unknown): void | never;
+
+  /**
+   * Deselects whatever was previously selected.
+   */
+  select(eles: DrawingElement[]): void;
 
   /**
    * Deselects all currently selected elements.

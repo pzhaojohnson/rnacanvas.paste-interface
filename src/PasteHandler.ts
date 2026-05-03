@@ -42,7 +42,9 @@ export class PasteHandler {
     this.#targetApp.undoStack.push();
 
     try {
-      this.#targetApp.draw(text);
+      let drawingWasEmpty = this.#targetApp.drawing.isEmpty();
+
+      let drawn = this.#targetApp.draw(text);
 
       // don't change the padding of the drawing when re-drawing saved drawings
       if (!isJSON(text)) {
@@ -64,6 +66,11 @@ export class PasteHandler {
       // don't overwrite a pre-existing name
       if (header && !this.#targetApp.drawing.name) {
         this.#targetApp.drawing.name = header;
+      }
+
+      if (!drawingWasEmpty) {
+        // select the drawn bases (to indicate to the user what was drawn)
+        this.#targetApp.select([...drawn?.bases ?? []]);
       }
     } catch (error) {
       console.error(error);

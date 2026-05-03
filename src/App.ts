@@ -72,7 +72,7 @@ export interface App {
   /**
    * Deselects whatever was previously selected.
    */
-  select(eles: DrawingElement[]): void;
+  select(eles: SVGGraphicsElement[]): void;
 
   /**
    * Deselects all currently selected elements.

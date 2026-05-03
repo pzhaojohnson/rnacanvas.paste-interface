@@ -8,6 +8,8 @@ import { isFASTA, parseFASTA } from '@rnacanvas/parse';
 
 import { isCT, parseCT } from '@rnacanvas/ct';
 
+import { isSVGGraphicsElement } from './isSVGGraphicsElement';
+
 export class PasteHandler {
   readonly #targetApp;
 
@@ -44,7 +46,9 @@ export class PasteHandler {
     try {
       let drawingWasEmpty = this.#targetApp.drawing.isEmpty();
 
-      let drawn = this.#targetApp.draw(text);
+      let n = this.#targetApp.drawing.domNode.children.length;
+
+      this.#targetApp.draw(text);
 
       // don't change the padding of the drawing when re-drawing saved drawings
       if (!isJSON(text)) {
@@ -68,9 +72,12 @@ export class PasteHandler {
         this.#targetApp.drawing.name = header;
       }
 
+      // the elements that were just drawn
+      let drawnElements = [...this.#targetApp.drawing.domNode.children].slice(n);
+
       if (!drawingWasEmpty) {
-        // select the drawn bases (to indicate to the user what was drawn)
-        this.#targetApp.select([...drawn?.bases ?? []]);
+        // indicate to the user which elements were just drawn
+        this.#targetApp.select(drawnElements.filter(isSVGGraphicsElement));
       }
     } catch (error) {
       console.error(error);

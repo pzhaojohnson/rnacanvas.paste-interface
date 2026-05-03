@@ -1,4 +1,6 @@
-import type { DrawingElement } from './DrawingElement';
+import type { Nucleobase } from './Nucleobase';
+
+import type { Point } from './Point';
 
 import type { BoxLike } from '@rnacanvas/boxes';
 
@@ -45,7 +47,7 @@ export interface App {
       /**
        * The drawn bases.
        */
-      bases?: Iterable<DrawingElement>;
+      bases?: Iterable<Nucleobase>;
     }
   ) | (
     undefined
@@ -83,6 +85,11 @@ export interface App {
    * The user's view of the drawing.
    */
   readonly view: {
+    /**
+     * Can be set to control the center point of the user's view.
+     */
+    centerPoint: Point;
+
     fitTo(box: BoxLike): void;
   }
 }

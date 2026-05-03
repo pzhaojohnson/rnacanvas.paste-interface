@@ -1,6 +1,6 @@
 {
   "name": "@rnacanvas/paste-interface",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "description": "Paste things",
   "repository": {
     "type": "git",
@@ -30,6 +30,7 @@
   "dependencies": {
     "@rnacanvas/boxes": "^5.0.1",
     "@rnacanvas/ct": "^2.1.1",
+    "@rnacanvas/layout": "^1.1.1",
     "@rnacanvas/parse": "^2.1.0",
     "@rnacanvas/utilities": "^7.1.0",
     "@rnacanvas/value-check": "^2.2.0"

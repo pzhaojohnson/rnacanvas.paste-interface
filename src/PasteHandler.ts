@@ -96,6 +96,12 @@ export class PasteHandler {
         // indicate to the user which elements were just drawn
         this.#targetApp.select(drawnElements.filter(isSVGGraphicsElement));
       }
+
+      if (this.#targetApp.startPage.isOpen()) {
+        this.#targetApp.startPage.close();
+
+        this.#targetApp.peripheralUI.show();
+      }
     } catch (error) {
       console.error(error);
 

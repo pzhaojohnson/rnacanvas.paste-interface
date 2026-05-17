@@ -92,4 +92,20 @@ export interface App {
 
     fitTo(box: BoxLike): void;
   }
+
+  /**
+   * Includes things such as the Toolbar and floating buttons.
+   */
+  readonly peripheralUI: {
+    show(): void;
+  }
+
+  /**
+   * The Start page of the app.
+   */
+  readonly startPage: {
+    isOpen(): boolean;
+
+    close(): void;
+  }
 }

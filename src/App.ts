@@ -1,3 +1,5 @@
+import type { Drawing } from '@rnacanvas/draw';
+
 import type { Nucleobase } from './Nucleobase';
 
 import type { Point } from './Point';
@@ -8,31 +10,14 @@ import type { BoxLike } from '@rnacanvas/boxes';
  * The app interface used by the paste interface.
  */
 export interface App {
+  readonly constructor: new () => App;
+
+  readonly domNode: HTMLElement;
+
   /**
    * The nucleic acid structure drawing of the app.
    */
-  readonly drawing: {
-    readonly domNode: SVGSVGElement;
-
-    name?: string;
-
-    isEmpty(): boolean;
-
-    /**
-     * The bounding box of the drawing's content.
-     */
-    readonly contentBBox: BoxLike & {
-      /**
-       * Returns a box padded around the drawing content bounding box
-       * (e.g., with 10% percentage padding relative to the dimensions of the drawing content bounding box).
-       */
-      padded(padding: { percentage: number }): BoxLike;
-    };
-
-    setPadding(padding: number): void;
-
-    reset(): void;
-  }
+  readonly drawing: Drawing;
 
   /**
    * Draws whatever is specified by the text
@@ -71,6 +56,10 @@ export interface App {
    */
   restore(previousState: unknown): void | never;
 
+  selection: {
+    isEmpty(): boolean;
+  };
+
   /**
    * Deselects whatever was previously selected.
    */
@@ -80,6 +69,10 @@ export interface App {
    * Deselects all currently selected elements.
    */
   deselect(): void;
+
+  selectedSVGElements: {
+    [Symbol.iterator](): IterableIterator<SVGGraphicsElement>;
+  };
 
   /**
    * The user's view of the drawing.

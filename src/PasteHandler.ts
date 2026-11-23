@@ -6,6 +6,8 @@ import { isFASTA, parseFASTA } from '@rnacanvas/parse';
 
 import { isCT, parseCT } from '@rnacanvas/ct';
 
+import { JSONPasteHandler } from './JSONPasteHandler';
+
 import { isSavedDrawing } from './isSavedDrawing';
 
 import { Centroid } from '@rnacanvas/layout';
@@ -15,8 +17,12 @@ import { isSVGGraphicsElement } from './isSVGGraphicsElement';
 export class PasteHandler {
   readonly #targetApp;
 
+  readonly #jsonPasteHandler;
+
   constructor(targetApp: App) {
     this.#targetApp = targetApp;
+
+    this.#jsonPasteHandler = new JSONPasteHandler(targetApp);
   }
 
   async handle(event: PasteLike) {
@@ -25,10 +31,22 @@ export class PasteHandler {
 
     let text = event.clipboardData?.getData('text') ?? '';
 
+    let json = event.clipboardData?.getData('application/json');
+
     let files = event.clipboardData?.files ?? [];
 
-    if (!text && files.length == 0) {
-      throw new Error('No text or files were pasted.');
+    if (!text && !json && files.length == 0) {
+      throw new Error('No text, JSON or files were pasted.');
+    }
+
+    if (json) {
+      try {
+        this.#jsonPasteHandler.handle(event);
+        return;
+      } catch (error) {
+        console.error(error);
+        console.error('Unable to paste JSON.');
+      }
     }
 
     if (files.length > 1) {

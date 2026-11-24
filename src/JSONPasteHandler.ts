@@ -130,16 +130,24 @@ export class JSONPasteHandler {
     this.#targetApp.drawing.tertiaryBonds = tertiaryBonds;
     this.#targetApp.drawing.strungElements = strungElements;
 
+    // cache
+    let viewX = this.#targetApp.view.centerPoint.x;
+    let viewY = this.#targetApp.view.centerPoint.y;
+
     let bbox = Box.bounding([...selectedSVGElements].map(ele => ele.getBBox()));
 
-    let dx = this.#targetApp.view.centerPoint.x - bbox.centerX;
-    let dy = this.#targetApp.view.centerPoint.y - bbox.centerY;
+    let dx = viewX - bbox.centerX;
+    let dy = viewY - bbox.centerY;
 
     // shift the pasted elements to center them within the user's view of the drawing
     selectedSVGElements.forEach(ele => shift(ele, { x: dx, y: dy }));
 
     // ensure the drawing is big enough for the pasted elements
     this.#targetApp.drawing.setPadding(2000);
+
+    // restore (changing the padding of the drawing might have moved the user's view of the drawing)
+    this.#targetApp.view.centerPoint.x = viewX;
+    this.#targetApp.view.centerPoint.y = viewY;
 
     // select the pasted elements
     this.#targetApp.select([...selectedSVGElements]);

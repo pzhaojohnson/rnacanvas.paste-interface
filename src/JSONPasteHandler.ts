@@ -6,6 +6,8 @@ import { Box } from '@rnacanvas/boxes';
 
 import type { PasteLike } from './PasteLike';
 
+import { isSVGGraphicsElement } from './isSVGGraphicsElement';
+
 export class JSONPasteHandler {
   readonly #targetApp;
 
@@ -39,13 +41,11 @@ export class JSONPasteHandler {
     this.#appState.drawing.refreshIDs();
 
     if (this.#appState.selection.isEmpty()) {
-      throw new Error('Nothing selected for pasting.');
+      throw new Error('Nothing was selected when copying from the previous drawing.');
     }
 
     this.#targetApp.undoStack.push();
 
-    // elements might be deselected upon being transferred / removed from the app state
-    // (so need to cache here)
     let selectedSVGElements = new Set(this.#appState.selectedSVGElements);
 
     const isSelected = (ele: { domNode: SVGGraphicsElement }) => selectedSVGElements.has(ele.domNode);
@@ -59,8 +59,14 @@ export class JSONPasteHandler {
     let selectedTertiaryBonds = this.#appState.drawing.tertiaryBonds.toArray().filter(isSelected);
     let selectedStrungElements = this.#appState.drawing.strungElements.toArray().filter(isSelected);
 
-    // transfer to the drawing of the target app
-    [...this.#appState.selectedSVGElements].forEach(ele => this.#targetApp.drawing.domNode.append(ele));
+    // don't forget to deep clone!
+    // (otherwise drawing elements in the app state might still act upon SVG elements added to the target app drawing)
+    let selectedSVGNodeClones = [...this.#appState.selectedSVGElements].map(ele => ele.cloneNode(true));
+
+    selectedSVGNodeClones.forEach(clone => this.#targetApp.drawing.domNode.append(clone));
+
+    // filter using `function isSVGGraphicsElememt()` just to satisfy the TypeScript compiler
+    let selectedSVGElementClones = selectedSVGNodeClones.filter(isSVGGraphicsElement);
 
     let bases = this.#targetApp.drawing.bases.toArray();
     let baseOutlines = this.#targetApp.drawing.outlines.toArray();
@@ -120,7 +126,7 @@ export class JSONPasteHandler {
       } catch {}
     });
 
-    // transfer over drawing elements
+    // register drawing elements
     this.#targetApp.drawing.bases = bases;
     this.#targetApp.drawing.baseOutlines = baseOutlines;
     this.#targetApp.drawing.numberings = numberings;
@@ -134,23 +140,24 @@ export class JSONPasteHandler {
     let viewX = this.#targetApp.view.centerPoint.x;
     let viewY = this.#targetApp.view.centerPoint.y;
 
-    let bbox = Box.bounding([...selectedSVGElements].map(ele => ele.getBBox()));
+    let bbox = Box.bounding([...selectedSVGElementClones].map(ele => ele.getBBox()));
 
     let dx = viewX - bbox.centerX;
     let dy = viewY - bbox.centerY;
 
     // shift the pasted elements to center them within the user's view of the drawing
-    selectedSVGElements.forEach(ele => shift(ele, { x: dx, y: dy }));
+    selectedSVGElementClones.forEach(ele => shift(ele, { x: dx, y: dy }));
 
     // ensure the drawing is big enough for the pasted elements
     this.#targetApp.drawing.setPadding(2000);
 
-    // restore (changing the padding of the drawing might have moved the user's view of the drawing)
+    // restore the user's view of the drawing
+    // (changing the padding of the drawing might have moved the user's view of the drawing)
     this.#targetApp.view.centerPoint.x = viewX;
     this.#targetApp.view.centerPoint.y = viewY;
 
     // select the pasted elements
-    this.#targetApp.select([...selectedSVGElements]);
+    this.#targetApp.select([...selectedSVGElementClones]);
   }
 }
 

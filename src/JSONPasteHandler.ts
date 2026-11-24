@@ -9,8 +9,13 @@ import type { PasteLike } from './PasteLike';
 export class JSONPasteHandler {
   readonly #targetApp;
 
+  readonly #appState;
+
   constructor(targetApp: App) {
     this.#targetApp = targetApp;
+
+    this.#appState = new targetApp.constructor();
+    appStateContainer.append(this.#appState.domNode);
   }
 
   handle(event: PasteLike) {
@@ -23,26 +28,17 @@ export class JSONPasteHandler {
       throw new Error('No JSON was pasted.');
     }
 
-    // remove any prior app state
-    appStateContainer.innerHTML = '';
-
     // needs to be part of the document body for things such as bounding box calculations to work correctly
     if (!document.body.contains(appStateContainer)) {
       document.body.append(appStateContainer);
     }
 
-    let appState = new this.#targetApp.constructor();
-    appStateContainer.append(appState.domNode);
-
-    appState.restore(JSON.parse(json));
+    this.#appState.restore(JSON.parse(json));
 
     // need to refresh IDs (in case copying and pasting from the same drawing)
-    appState.drawing.refreshIDs();
+    this.#appState.drawing.refreshIDs();
 
-    if (appState.selection.isEmpty()) {
-      // remove app state
-      appStateContainer.innerHTML = '';
-
+    if (this.#appState.selection.isEmpty()) {
       throw new Error('Nothing selected for pasting.');
     }
 
@@ -50,21 +46,21 @@ export class JSONPasteHandler {
 
     // elements might be deselected upon being transferred / removed from the app state
     // (so need to cache here)
-    let selectedSVGElements = new Set(appState.selectedSVGElements);
+    let selectedSVGElements = new Set(this.#appState.selectedSVGElements);
 
     const isSelected = (ele: { domNode: SVGGraphicsElement }) => selectedSVGElements.has(ele.domNode);
 
-    let selectedBases = appState.drawing.bases.toArray().filter(isSelected);
-    let selectedBaseOutlines = appState.drawing.baseOutlines.toArray().filter(isSelected);
-    let selectedNumberings = appState.drawing.numberings.toArray().filter(isSelected);
-    let selectedNumberingLines = appState.drawing.numberingLines.toArray().filter(isSelected);
-    let selectedPrimaryBonds = appState.drawing.primaryBonds.toArray().filter(isSelected);
-    let selectedSecondaryBonds = appState.drawing.secondaryBonds.toArray().filter(isSelected);
-    let selectedTertiaryBonds = appState.drawing.tertiaryBonds.toArray().filter(isSelected);
-    let selectedStrungElements = appState.drawing.strungElements.toArray().filter(isSelected);
+    let selectedBases = this.#appState.drawing.bases.toArray().filter(isSelected);
+    let selectedBaseOutlines = this.#appState.drawing.baseOutlines.toArray().filter(isSelected);
+    let selectedNumberings = this.#appState.drawing.numberings.toArray().filter(isSelected);
+    let selectedNumberingLines = this.#appState.drawing.numberingLines.toArray().filter(isSelected);
+    let selectedPrimaryBonds = this.#appState.drawing.primaryBonds.toArray().filter(isSelected);
+    let selectedSecondaryBonds = this.#appState.drawing.secondaryBonds.toArray().filter(isSelected);
+    let selectedTertiaryBonds = this.#appState.drawing.tertiaryBonds.toArray().filter(isSelected);
+    let selectedStrungElements = this.#appState.drawing.strungElements.toArray().filter(isSelected);
 
     // transfer to the drawing of the target app
-    [...appState.selectedSVGElements].forEach(ele => this.#targetApp.drawing.domNode.append(ele));
+    [...this.#appState.selectedSVGElements].forEach(ele => this.#targetApp.drawing.domNode.append(ele));
 
     let bases = this.#targetApp.drawing.bases.toArray();
     let baseOutlines = this.#targetApp.drawing.outlines.toArray();
@@ -147,9 +143,6 @@ export class JSONPasteHandler {
 
     // select the pasted elements
     this.#targetApp.select([...selectedSVGElements]);
-
-    // remove app state
-    appStateContainer.innerHTML = '';
   }
 }
 

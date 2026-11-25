@@ -168,8 +168,7 @@ export class JSONPasteHandler {
 
     // restore the user's view of the drawing
     // (changing the padding of the drawing might have moved the user's view of the drawing)
-    this.#targetApp.view.centerPoint.x = viewX;
-    this.#targetApp.view.centerPoint.y = viewY;
+    this.#targetApp.view.centerPoint = { x: viewX, y: viewY };
 
     // select the pasted elements
     this.#targetApp.select([...pastedSVGElements]);
@@ -180,5 +179,8 @@ const appStateContainer = document.createElement('div');
 
 // make invisible (but still rendered)
 appStateContainer.style.width = '0px';
+
+// don't affect the page layout
+appStateContainer.style.position = 'fixed';
 
 document.body.append(appStateContainer);

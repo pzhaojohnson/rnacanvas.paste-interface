@@ -6,6 +6,8 @@ import { Box } from '@rnacanvas/boxes';
 
 import type { PasteLike } from './PasteLike';
 
+import { unnested } from './unnested';
+
 import { isSVGGraphicsElement } from './isSVGGraphicsElement';
 
 export class JSONPasteHandler {
@@ -65,14 +67,17 @@ export class JSONPasteHandler {
         .filter(domNode => isSVGGraphicsElement(domNode) && isSelected({ domNode }))
     );
 
+    // otherwise nested elements would be duplicated after cloning
+    let unnestedSelectedSVGElements = unnested(sortedSelectedSVGElements);
+
     // don't forget to deep clone!
     // (otherwise drawing elements in the app state might still act upon SVG elements added to the target app drawing)
-    let selectedSVGNodeClones = sortedSelectedSVGElements.map(ele => ele.cloneNode(true));
+    let pastedSVGNodes = unnestedSelectedSVGElements.map(ele => ele.cloneNode(true));
 
-    selectedSVGNodeClones.forEach(clone => this.#targetApp.drawing.domNode.append(clone));
+    pastedSVGNodes.forEach(node => this.#targetApp.drawing.domNode.append(node));
 
     // filter using `function isSVGGraphicsElememt()` just to satisfy the TypeScript compiler
-    let selectedSVGElementClones = selectedSVGNodeClones.filter(isSVGGraphicsElement);
+    let pastedSVGElements = pastedSVGNodes.filter(isSVGGraphicsElement);
 
     let bases = this.#targetApp.drawing.bases.toArray();
     let baseOutlines = this.#targetApp.drawing.outlines.toArray();
@@ -146,13 +151,13 @@ export class JSONPasteHandler {
     let viewX = this.#targetApp.view.centerPoint.x;
     let viewY = this.#targetApp.view.centerPoint.y;
 
-    let bbox = Box.bounding([...selectedSVGElementClones].map(ele => ele.getBBox()));
+    let bbox = Box.bounding([...pastedSVGElements].map(ele => ele.getBBox()));
 
     let dx = viewX - bbox.centerX;
     let dy = viewY - bbox.centerY;
 
     // shift the pasted elements to center them within the user's view of the drawing
-    selectedSVGElementClones.forEach(ele => shift(ele, { x: dx, y: dy }));
+    pastedSVGElements.forEach(ele => shift(ele, { x: dx, y: dy }));
 
     // ensure the drawing is big enough for the pasted elements
     this.#targetApp.drawing.setPadding(2000);
@@ -163,7 +168,7 @@ export class JSONPasteHandler {
     this.#targetApp.view.centerPoint.y = viewY;
 
     // select the pasted elements
-    this.#targetApp.select([...selectedSVGElementClones]);
+    this.#targetApp.select([...pastedSVGElements]);
   }
 }
 

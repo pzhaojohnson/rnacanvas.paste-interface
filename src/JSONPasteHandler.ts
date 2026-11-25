@@ -59,9 +59,15 @@ export class JSONPasteHandler {
     let selectedTertiaryBonds = this.#appState.drawing.tertiaryBonds.toArray().filter(isSelected);
     let selectedStrungElements = this.#appState.drawing.strungElements.toArray().filter(isSelected);
 
+    // maintain the order of SVG elements when pasting them
+    let sortedSelectedSVGElements = (
+      Array.from(this.#appState.drawing.domNode.querySelectorAll('*'))
+        .filter(domNode => isSVGGraphicsElement(domNode) && isSelected({ domNode }))
+    );
+
     // don't forget to deep clone!
     // (otherwise drawing elements in the app state might still act upon SVG elements added to the target app drawing)
-    let selectedSVGNodeClones = [...this.#appState.selectedSVGElements].map(ele => ele.cloneNode(true));
+    let selectedSVGNodeClones = sortedSelectedSVGElements.map(ele => ele.cloneNode(true));
 
     selectedSVGNodeClones.forEach(clone => this.#targetApp.drawing.domNode.append(clone));
 

@@ -13,13 +13,10 @@ import { isSVGGraphicsElement } from './isSVGGraphicsElement';
 export class JSONPasteHandler {
   readonly #targetApp;
 
-  readonly #appState;
+  #appState?: App;
 
   constructor(targetApp: App) {
     this.#targetApp = targetApp;
-
-    this.#appState = new targetApp.constructor();
-    appStateContainer.append(this.#appState.domNode);
   }
 
   handle(event: PasteLike) {
@@ -35,6 +32,13 @@ export class JSONPasteHandler {
     // needs to be part of the document body for things such as bounding box calculations to work correctly
     if (!document.body.contains(appStateContainer)) {
       document.body.append(appStateContainer);
+    }
+
+    // should only have to instantiate on the first paste
+    // (don't instantiate in the constructor to avoid infinite recursion between the app and the paste handler)
+    if (!this.#appState) {
+      this.#appState = new this.#targetApp.constructor();
+      appStateContainer.append(this.#appState.domNode);
     }
 
     this.#appState.restore(JSON.parse(json));

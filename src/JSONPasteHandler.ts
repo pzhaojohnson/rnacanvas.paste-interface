@@ -50,6 +50,8 @@ export class JSONPasteHandler {
       throw new Error('Nothing was selected when copying from the previous drawing.');
     }
 
+    let drawingWasEmpty = this.#targetApp.drawing.isEmpty();
+
     this.#targetApp.undoStack.push();
 
     let selectedSVGElements = new Set(this.#appState.selectedSVGElements);
@@ -166,12 +168,19 @@ export class JSONPasteHandler {
     // ensure the drawing is big enough for the pasted elements
     this.#targetApp.drawing.setPadding(2000);
 
+    if (this.#targetApp.startPage.isOpen()) {
+      this.#targetApp.startPage.close();
+      this.#targetApp.peripheralUI.show();
+    }
+
     // restore the user's view of the drawing
-    // (changing the padding of the drawing might have moved the user's view of the drawing)
+    // (after changing the padding of the drawing and closing the start page, which might change the user's view of the drawing)
     this.#targetApp.view.centerPoint = { x: viewX, y: viewY };
 
-    // select the pasted elements
-    this.#targetApp.select([...pastedSVGElements]);
+    // select the pasted elements (if there were already other elements in the drawing before pasting)
+    if (!drawingWasEmpty) {
+      this.#targetApp.select([...pastedSVGElements]);
+    }
   }
 }
 
